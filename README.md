@@ -98,77 +98,99 @@ df.duplicated().sum()
 This section contains various methods and visualizations to understand the data and uncover relationships among features. The uploaded notebook includes detailed code for each step.
 
 ### 4.1 Univariate Analysis
+### Count Plot of Bechdel Test Results
 
-#### 4.1.1 Distribution of Bechdel Test Results
+**Question:**  
+*How many movies in the dataset pass or fail the Bechdel Test?*
+
+**Answer:**  
+The count plot displays the number of movies that pass or fail the Bechdel Test by showing a bar chart with each category’s count.
+
+**Explanation:**  
+The code uses `sns.countplot` on the column `'bechdel_rating'` to count and visualize the number of movies in each category. This simple chart immediately reveals which outcome (pass or fail) is more common in the dataset.
+
 ```python
-sns.countplot(data=df, x='bechdel_result')  # or 'binary' if labeled differently
+plt.figure(figsize=(8, 6))
+sns.countplot(data=df, x='bechdel_rating') 
 plt.title('Count of Movies by Bechdel Test Result')
+plt.xlabel('')
+plt.ylabel('Number of Movies')
 plt.show()
 ```
-**Insight**: Reveals the proportion of movies passing versus failing the Bechdel Test.
-![image](https://github.com/user-attachments/assets/4d6a1ef4-590c-4ce4-8145-527db583fe89)
+![image](https://github.com/user-attachments/assets/d8e649c2-c548-4986-b4b4-280ba3df6fd6)
 
+---
 
-#### 4.1.2 Distribution of IMDb Ratings
+### Trend Over Years of Movies Passing/Failing the Bechdel Test
+
+**Question:**  
+*How has the distribution of movies passing or failing the Bechdel Test changed over time?*
+
+**Answer:**  
+The line plot shows the yearly trend for the count of movies that pass or fail the test, highlighting any shifts or trends in representation over the years.
+
+**Explanation:**  
+The code first groups the data by `year` and `bechdel_rating` (or the binary equivalent) to calculate the yearly counts. Then, it uses `sns.lineplot` to draw a line chart with different lines (or hues) for each Bechdel Test outcome. This visualization helps determine if the number of movies meeting the criteria is increasing, decreasing, or remaining stable over time.
+
 ```python
-sns.histplot(df['imdb_rating'], bins=30, kde=True)
-plt.title('Distribution of IMDb Ratings')
+# Group data by year and test result then reset index for plotting
+df_yearly = df.groupby(['year', 'bechdel_rating']).size().reset_index(name='count')
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=df_yearly, x='year', y='count', hue='binary', marker='o')
+plt.title('Trend of Movies Passing/Failing the Bechdel Test Over Years')
+plt.xlabel('Year')
+plt.ylabel('Number of Movies')
+plt.legend(title='Bechdel Test Result')
 plt.show()
 ```
-**Insight**: Shows the average rating and indicates whether ratings are skewed.
-![image](https://github.com/user-attachments/assets/aa55335a-c272-4cdd-b550-64d4f8caced5)
+![image](https://github.com/user-attachments/assets/4dfdfa2c-550f-460f-b6b4-3b521f62d59f)
 
-### 4.2 Categorical Feature Selection
-If the dataset contains variables like **genre** or **IMBD rating**, they are flagged as categorical to facilitate group-based analyses.
+---
 
-### 4.3 Separating Features into Categories
-The features are explicitly divided into:
-- **Numerical features** (e.g., `year`, `budget`, `worldwide_gross`, `imdb_rating`)  
-- **Categorical features** (e.g., `genre`, `mpaa_rating`, `bechdel_result`)
-![image](https://github.com/user-attachments/assets/d2b1dea9-daaf-48cd-9b67-96f0d76f6309)
+### Box Plot of IMDb Ratings by Bechdel Test Result
 
-### 4.4 Numerical Features
+**Question:**  
+*Do movies that pass the Bechdel Test differ in their IMDb ratings compared to those that fail?*
 
-#### 4.4.1 Summary Statistics
+**Answer:**  
+The box plot compares the distribution of IMDb ratings for movies based on their Bechdel Test outcome, showing differences in median ratings, quartile ranges, and outliers between the groups.
+
+**Explanation:**  
+Using `sns.boxplot`, the code maps `'bechdel_rating'` to the x-axis and `'imdb_rating'` to the y-axis. This visualization provides insights into the central tendency and variability of ratings for each group, which can indicate if passing the test is associated with higher or lower average ratings.
+
 ```python
-df.describe()
+plt.figure(figsize=(8, 6))
+sns.boxplot(data=df, x='bechdel_rating', y='imdb_rating')
+plt.title('IMDb Ratings by Bechdel Test Result')
+plt.xlabel('Bechdel Test Result')
+plt.ylabel('IMDb Rating')
+plt.show()
 ```
-- Displays mean, median, minimum, and maximum values for each numerical column.
+![image](https://github.com/user-attachments/assets/72cba0bb-b9e8-49b9-b078-c70500ca1d45)
 
-#### 4.4.2 Correlation Heatmap
+---
+
+### Correlation Heatmap of Numerical Features
+
+**Question:**  
+*What relationships exist among the numerical features (e.g., year, budget, IMDb rating) in the dataset?*
+
+**Answer:**  
+The correlation heatmap shows the strength and direction of the relationships between various numerical features. For example, it may highlight if higher budgets are linked with higher worldwide grosses or if certain variables tend to increase together.
+
+**Explanation:**  
+The code selects numerical columns from the DataFrame, computes their pairwise correlations, and then visualizes these correlations using `sns.heatmap` with annotations. The heatmap uses color intensity to indicate the magnitude of correlations, making it easy to spot significant positive or negative relationships among the features.
+
 ```python
+plt.figure(figsize=(10, 8))
+# Select only numerical columns
 numeric_cols = df.select_dtypes(include=['int64', 'float64'])
-sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm')
+sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt=".2f")
 plt.title('Correlation Heatmap of Numerical Features')
 plt.show()
+![image](https://github.com/user-attachments/assets/78f51763-7472-4566-80bc-688957b0979a)
+
 ```
-**Insight**: Helps determine whether variables such as `budget` and `duration` correlate with each other or with the Bechdel Test outcome (if encoded as 0/1).
-![image](https://github.com/user-attachments/assets/b5c99361-2a2e-418b-9641-d56e7fd525c0)
-
-### 4.5 Key Insights from the Distribution
-Based on the distributions (e.g., histograms, box plots), any noteworthy patterns are highlighted. For instance, the author might observe that newer movies tend to have a higher Bechdel pass rate.
-
-### 4.6 Categorical Features
-For columns like **genre** or **director**, the author inspects frequency distributions and group-specific trends:
-
-```python
-df['genre'].value_counts()
-```
-**Insight**: Shows which genres are most prevalent and whether certain genres pass the Bechdel Test more often.
-
----
-
-## How the Bechdel Test Was Discovered
-
-The author realized a gender imbalance while watching a TV series and noting a shortage of meaningful female characters. This observation prompted a deeper question: *“Why are there more male characters than female characters in most movies?”* Further exploration led them to the **Bechdel Test**, which highlights whether a film:
-
-1. Features at least **two women**,  
-2. Who **talk to each other**,  
-3. **About something other than a man**.
-
-Although passing the Bechdel Test does not guarantee that a movie is feminist or free of problematic representations, it does highlight a recurring issue: many films do not include women with substantive roles or dialogues. By incorporating the Bechdel Test outcome into data analyses, one can identify broader trends and encourage discussions about improving female representation in media.
-
----
 
 # Conclusion
 In summary, this notebook:
